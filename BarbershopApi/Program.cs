@@ -1,15 +1,19 @@
+using BarbershopApi.Data;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Registriraj kontrolere (ovo omogućuje rad mape Controllers)
-builder.Services.AddControllers();
+// Registracija baze podataka (SQLite)
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite("Data Source=barbershop.db"));
 
-// Swagger postavke
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// 2. Konfiguracija za razvoj (Swagger)
+// Konfiguracija HTTP cjevovoda
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -18,8 +22,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// 3. RECI APLIKACIJI DA KORISTI KONTROLERE
-// Ovo će automatski pronaći tvoj ServicesController
-app.MapControllers(); 
+app.UseAuthorization();
+
+// Ključna linija za pronalaženje kontrolera
+app.MapControllers();
 
 app.Run();
