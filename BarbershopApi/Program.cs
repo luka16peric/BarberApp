@@ -3,6 +3,15 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 1. DODAJ CORS (Ovo je ključno za iPhone/Swift!)
+builder.Services.AddCors(options => {
+    options.AddPolicy("AllowSwiftUI", policy => {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // Registracija baze podataka (SQLite)
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=barbershop.db"));
@@ -20,11 +29,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// 2. AKTIVIRAJ CORS (Mora biti iznad UseAuthorization i MapControllers)
+app.UseCors("AllowSwiftUI");
+
+// app.UseHttpsRedirection(); // SAVJET: Ako testiraš lokalno, nekad je lakše zakomentirati ovo dok ne središ certifikate na iPhoneu
 
 app.UseAuthorization();
 
-// Ključna linija za pronalaženje kontrolera
 app.MapControllers();
 
 app.Run();
