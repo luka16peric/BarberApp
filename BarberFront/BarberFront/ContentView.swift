@@ -62,68 +62,79 @@ struct AuthView: View {
     }
 }
 
-// MARK: - HOME SCREEN
+// MARK: - HOME SCREEN (S POPRAVLJENIM SKROLANJEM)
 struct ClientDashboardView: View {
     @Binding var isAuthenticated: Bool; @Binding var isGuest: Bool
     @State private var navigationId = UUID()
     
     var body: some View {
         NavigationView {
-            VStack(alignment: .leading, spacing: 0) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(isGuest ? "Welcome, Guest" : "Welcome back,").font(.system(size: 18)).foregroundColor(.gray)
-                    Text(isGuest ? "Stranger" : "Jordan").font(.system(size: 32, weight: .black))
-                }.padding(.horizontal, 25).padding(.top, 30)
+            ZStack {
+                Color(hex: "F8F9FA").ignoresSafeArea()
                 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 30) {
-                        HStack(spacing: 20) {
-                            NavigationLink(destination: ServicesView()) { ActionCard(icon: "calendar", title: "Book Now", subtitle: "Schedule appointment") }
-                            NavigationLink(destination: ServicesView()) { ActionCard(icon: "scissors", title: "Services", subtitle: "View all") }
-                        }.buttonStyle(PlainButtonStyle()).padding(.horizontal, 25).padding(.top, 20)
+                    VStack(alignment: .leading, spacing: 0) {
                         
-                        VStack(alignment: .leading, spacing: 15) {
-                            Text("Our Barbers").font(.headline).padding(.horizontal, 25)
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 20) {
-                                    BarberCard(name: "Marcus Chen", specialty: "Classic Cuts", rating: "4.8")
-                                    BarberCard(name: "David Torres", specialty: "Beard Expert", rating: "5.0")
-                                }.padding(.horizontal, 25)
+                        // WELCOME HEADER - Sada je unutar ScrollView-a
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(isGuest ? "Welcome, Guest" : "Welcome back,").font(.system(size: 18)).foregroundColor(.gray)
+                            Text(isGuest ? "Stranger" : "Jordan").font(.system(size: 32, weight: .black))
+                        }
+                        .padding(.horizontal, 25)
+                        .padding(.top, 30)
+                        
+                        VStack(alignment: .leading, spacing: 30) {
+                            HStack(spacing: 20) {
+                                NavigationLink(destination: ServicesView()) { ActionCard(icon: "calendar", title: "Book Now", subtitle: "Schedule appointment") }
+                                NavigationLink(destination: ServicesView()) { ActionCard(icon: "scissors", title: "Services", subtitle: "View all") }
                             }
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 15) {
-                            Text("Find Us").font(.headline).padding(.horizontal, 25)
-                            HStack(spacing: 15) {
-                                Image(systemName: "map.fill").font(.title2).foregroundColor(.white).padding(12).background(Color(hex: "FF6B00")).cornerRadius(15)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Barber Pro Studio").font(.headline)
-                                    Text("Ulica Hrvatske Mornarice 10, Split").font(.subheadline).foregroundColor(.gray)
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.horizontal, 25)
+                            .padding(.top, 20)
+                            
+                            VStack(alignment: .leading, spacing: 15) {
+                                Text("Our Barbers").font(.headline).padding(.horizontal, 25)
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 20) {
+                                        BarberCard(name: "Luka Perić", specialty: "Classic Cuts", rating: "4.8")
+                                        BarberCard(name: "Jani Brodarić", specialty: "Beard Expert", rating: "5.0")
+                                    }.padding(.horizontal, 25)
                                 }
-                                Spacer()
-                            }.padding(20).background(Color.white).cornerRadius(25).shadow(color: Color.black.opacity(0.03), radius: 10, y: 5).padding(.horizontal, 25)
-                        }
-                        
-                        HStack(spacing: 25) {
-                            SocialButton(icon: "camera.fill", color: "E1306C")
-                            SocialButton(icon: "music.note", color: "000000")
-                            SocialButton(icon: "f.square.fill", color: "1877F2")
-                        }.frame(maxWidth: .infinity).padding(.top, 10)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 15) {
+                                Text("Find Us").font(.headline).padding(.horizontal, 25)
+                                HStack(spacing: 15) {
+                                    Image(systemName: "map.fill").font(.title2).foregroundColor(.white).padding(12).background(Color(hex: "FF6B00")).cornerRadius(15)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Barber Pro Studio").font(.headline)
+                                        Text("Ulica Hrvatske Mornarice 10, Split").font(.subheadline).foregroundColor(.gray)
+                                    }
+                                    Spacer()
+                                }.padding(20).background(Color.white).cornerRadius(25).shadow(color: Color.black.opacity(0.03), radius: 10, y: 5).padding(.horizontal, 25)
+                            }
+                            
+                            HStack(spacing: 25) {
+                                SocialButton(icon: "camera.fill", color: "E1306C")
+                                SocialButton(icon: "music.note", color: "000000")
+                                SocialButton(icon: "f.square.fill", color: "1877F2")
+                            }.frame(maxWidth: .infinity).padding(.top, 10)
 
-                        Button("Exit App") { isAuthenticated = false; isGuest = false }.font(.footnote).foregroundColor(.gray).frame(maxWidth: .infinity).padding(.bottom, 30)
+                            Button("Exit App") { isAuthenticated = false; isGuest = false }.font(.footnote).foregroundColor(.gray).frame(maxWidth: .infinity).padding(.bottom, 30)
+                        }
                     }
                 }
-            }.background(Color(hex: "F8F9FA").ignoresSafeArea()).navigationBarHidden(true)
+            }
+            .navigationBarHidden(true)
         }
         .id(navigationId)
     }
 }
 
-// MARK: - BOOKING KORACI
+// MARK: - BOOKING KORACI (Netaknuti stilovi)
 struct ServicesView: View {
     @Environment(\.presentationMode) var presentationMode; @State private var selectedService: ServiceItem?
     let services = [ServiceItem(name: "Haircut", price: "$40", duration: "30 min", icon: "scissors"), ServiceItem(name: "Beard Trim", price: "$25", duration: "20 min", icon: "wind"), ServiceItem(name: "Full Service", price: "$65", duration: "60 min", icon: "sparkles"), ServiceItem(name: "Hot Towel Shave", price: "$35", duration: "30 min", icon: "bolt.fill")]
-    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Button(action: { presentationMode.wrappedValue.dismiss() }) { HStack(spacing: 5) { Image(systemName: "chevron.left"); Text("Back") }.foregroundColor(Color(hex: "FF6B00")).font(.system(size: 18, weight: .medium)) }.padding(.horizontal, 25).padding(.top, 10)
@@ -131,16 +142,9 @@ struct ServicesView: View {
                 Text("Book Appointment").font(.system(size: 28, weight: .bold))
                 ZStack(alignment: .leading) { Capsule().fill(Color.gray.opacity(0.1)).frame(height: 4); Capsule().fill(Color(hex: "FF6B00")).frame(width: 80, height: 4) }
             }.padding(.horizontal, 25).padding(.top, 25)
-            
             Text("Choose Service").font(.system(size: 20, weight: .bold)).padding(.horizontal, 25).padding(.top, 35)
-            
             ScrollView { VStack(spacing: 15) { ForEach(services) { service in Button(action: { selectedService = service }) { ServiceItemRow(service: service, isSelected: selectedService?.id == service.id) } } }.padding(25) }
-            
-            if let s = selectedService {
-                NavigationLink(destination: BarberSelectionView(selectedService: s)) {
-                    Text("Choose Barber").font(.system(size: 18, weight: .bold)).foregroundColor(.white).frame(maxWidth: .infinity).padding(.vertical, 18).background(Color(hex: "FF6B00")).cornerRadius(18).padding(.horizontal, 25).padding(.bottom, 30)
-                }
-            }
+            if let s = selectedService { NavigationLink(destination: BarberSelectionView(selectedService: s)) { Text("Choose Barber").font(.system(size: 18, weight: .bold)).foregroundColor(.white).frame(maxWidth: .infinity).padding(.vertical, 18).background(Color(hex: "FF6B00")).cornerRadius(18).padding(.horizontal, 25).padding(.bottom, 30) } }
         }.background(Color(hex: "F8F9FA").ignoresSafeArea()).navigationBarHidden(true)
     }
 }
@@ -151,15 +155,9 @@ struct BarberSelectionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Button(action: { presentationMode.wrappedValue.dismiss() }) { HStack(spacing: 5) { Image(systemName: "chevron.left"); Text("Back") }.foregroundColor(Color(hex: "FF6B00")).font(.system(size: 18, weight: .medium)) }.padding(.horizontal, 25).padding(.top, 10)
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Book Appointment").font(.system(size: 28, weight: .bold))
-                HStack(spacing: 5) { Capsule().fill(Color(hex: "FF6B00")).frame(width: 60, height: 4); Capsule().fill(Color(hex: "FF6B00")).frame(width: 60, height: 4) }
-            }.padding(.horizontal, 25).padding(.top, 25)
-            
+            VStack(alignment: .leading, spacing: 12) { Text("Book Appointment").font(.system(size: 28, weight: .bold)); HStack(spacing: 5) { Capsule().fill(Color(hex: "FF6B00")).frame(width: 60, height: 4); Capsule().fill(Color(hex: "FF6B00")).frame(width: 60, height: 4) } }.padding(.horizontal, 25).padding(.top, 25)
             Text("Choose Your Barber").font(.system(size: 20, weight: .bold)).padding(.horizontal, 25).padding(.top, 35)
-            
             ScrollView { VStack(spacing: 15) { ForEach(barbers) { b in Button(action: { selectedBarber = b }) { BarberSelectRow(barber: b, isSelected: selectedBarber?.id == b.id) } } }.padding(25) }
-            
             if let b = selectedBarber { NavigationLink(destination: DateSelectionView(selectedService: selectedService, selectedBarber: b)) { Text("Choose Date").font(.system(size: 18, weight: .bold)).foregroundColor(.white).frame(maxWidth: .infinity).padding(.vertical, 18).background(Color(hex: "FF6B00")).cornerRadius(18).padding(.horizontal, 25).padding(.bottom, 30) } }
         }.background(Color(hex: "F8F9FA").ignoresSafeArea()).navigationBarHidden(true)
     }
@@ -167,15 +165,11 @@ struct BarberSelectionView: View {
 
 struct DateSelectionView: View {
     @Environment(\.presentationMode) var presentationMode; let selectedService: ServiceItem; let selectedBarber: BarberItem; @State private var selectedDate: DateItem?
-    let dates = [DateItem(dayName: "Thu", dayNumber: "2", month: "Apr"), DateItem(dayName: "Fri", dayNumber: "3", month: "Apr"), DateItem(dayName: "Sat", dayNumber: "4", month: "Apr"), DateItem(dayName: "Sun", dayNumber: "5", month: "Apr"), DateItem(dayName: "Mon", dayNumber: "6", month: "Apr"), DateItem(dayName: "Tue", dayNumber: "7", month: "Apr"), DateItem(dayName: "Wed", dayNumber: "8", month: "Apr")]
+    let dates = [DateItem(dayName: "Thu", dayNumber: "2", month: "Apr"), DateItem(dayName: "Fri", dayNumber: "3", month: "Apr"), DateItem(dayName: "Sat", dayNumber: "4", month: "Apr"), DateItem(dayName: "Sun", dayNumber: "5", month: "Apr"), DateItem(dayName: "Mon", dayNumber: "6", month: "Apr"), DateItem(dayName: "Tue", dayNumber: "7", month: "Apr")]
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Button(action: { presentationMode.wrappedValue.dismiss() }) { HStack(spacing: 5) { Image(systemName: "chevron.left"); Text("Back") }.foregroundColor(Color(hex: "FF6B00")) }.padding(.horizontal, 25).padding(.top, 10)
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Book Appointment").font(.system(size: 28, weight: .bold))
-                HStack(spacing: 5) { ForEach(0..<3, id: \.self) { _ in Capsule().fill(Color(hex: "FF6B00")).frame(width: 60, height: 4) } }
-            }.padding(.horizontal, 25).padding(.top, 25)
-            
+            VStack(alignment: .leading, spacing: 12) { Text("Book Appointment").font(.system(size: 28, weight: .bold)); HStack(spacing: 5) { ForEach(0..<3, id: \.self) { _ in Capsule().fill(Color(hex: "FF6B00")).frame(width: 60, height: 4) } } }.padding(.horizontal, 25).padding(.top, 25)
             ScrollView { LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 15) { ForEach(dates) { d in Button(action: { selectedDate = d }) { DateCard(date: d, isSelected: selectedDate?.id == d.id) } } }.padding(25) }
             if let d = selectedDate { NavigationLink(destination: TimeSelectionView(selectedService: selectedService, selectedBarber: selectedBarber, selectedDate: d)) { Text("Choose Time").font(.system(size: 18, weight: .bold)).foregroundColor(.white).frame(maxWidth: .infinity).padding(.vertical, 18).background(Color(hex: "FF6B00")).cornerRadius(18).padding(.horizontal, 25).padding(.bottom, 30) } }
         }.background(Color(hex: "F8F9FA").ignoresSafeArea()).navigationBarHidden(true)
@@ -188,11 +182,7 @@ struct TimeSelectionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Button(action: { presentationMode.wrappedValue.dismiss() }) { HStack(spacing: 5) { Image(systemName: "chevron.left"); Text("Back") }.foregroundColor(Color(hex: "FF6B00")) }.padding(.horizontal, 25).padding(.top, 10)
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Book Appointment").font(.system(size: 28, weight: .bold))
-                HStack(spacing: 5) { ForEach(0..<4, id: \.self) { _ in Capsule().fill(Color(hex: "FF6B00")).frame(width: 60, height: 4) } }
-            }.padding(.horizontal, 25).padding(.top, 25)
-            
+            VStack(alignment: .leading, spacing: 12) { Text("Book Appointment").font(.system(size: 28, weight: .bold)); HStack(spacing: 5) { ForEach(0..<4, id: \.self) { _ in Capsule().fill(Color(hex: "FF6B00")).frame(width: 60, height: 4) } } }.padding(.horizontal, 25).padding(.top, 25)
             ScrollView { LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 15) { ForEach(times, id: \.self) { t in Button(action: { selectedTime = t }) { Text(t).font(.headline).foregroundColor(selectedTime == t ? .white : .black).frame(maxWidth: .infinity).padding(.vertical, 20).background(selectedTime == t ? Color(hex: "FF6B00") : Color.white).cornerRadius(20) } } }.padding(25) }
             if let t = selectedTime { NavigationLink(destination: ConfirmationView(selectedService: selectedService, selectedBarber: selectedBarber, selectedDate: selectedDate, selectedTime: t)) { Text("Review").font(.system(size: 18, weight: .bold)).foregroundColor(.white).frame(maxWidth: .infinity).padding(.vertical, 18).background(Color(hex: "FF6B00")).cornerRadius(18).padding(.horizontal, 25).padding(.bottom, 30) } }
         }.background(Color(hex: "F8F9FA").ignoresSafeArea()).navigationBarHidden(true)
@@ -222,57 +212,19 @@ struct ConfirmationView: View {
     }
 }
 
-// MARK: - POMOĆNE KOMPONENTE (POPRAVLJENI STILOVI I BOJE)
+// MARK: - POMOĆNE KOMPONENTE (Netaknuto)
 struct ServiceItemRow: View {
     let service: ServiceItem; let isSelected: Bool
-    var body: some View {
-        HStack(spacing: 20) {
-            ZStack { RoundedRectangle(cornerRadius: 15).fill(Color(hex: "FF6B00").opacity(0.08)).frame(width: 55, height: 55); Image(systemName: service.icon).font(.system(size: 20)).foregroundColor(Color(hex: "FF6B00")) }
-            VStack(alignment: .leading, spacing: 4) { Text(service.name).font(.system(size: 18, weight: .bold)).foregroundColor(.black); HStack(spacing: 8) { Text(service.price).bold().foregroundColor(Color(hex: "FF6B00")); Text(service.duration).foregroundColor(.gray) } }
-            Spacer()
-        }.padding(18).background(Color.white).cornerRadius(25).overlay(RoundedRectangle(cornerRadius: 25).stroke(isSelected ? Color(hex: "FF6B00") : Color.clear, lineWidth: 2)).shadow(color: Color.black.opacity(0.02), radius: 10, y: 5)
-    }
+    var body: some View { HStack(spacing: 20) { ZStack { RoundedRectangle(cornerRadius: 15).fill(Color(hex: "FF6B00").opacity(0.08)).frame(width: 55, height: 55); Image(systemName: service.icon).font(.system(size: 20)).foregroundColor(Color(hex: "FF6B00")) }; VStack(alignment: .leading, spacing: 4) { Text(service.name).font(.system(size: 18, weight: .bold)).foregroundColor(.black); HStack(spacing: 8) { Text(service.price).bold().foregroundColor(Color(hex: "FF6B00")); Text(service.duration).foregroundColor(.gray) } }; Spacer() }.padding(18).background(Color.white).cornerRadius(25).overlay(RoundedRectangle(cornerRadius: 25).stroke(isSelected ? Color(hex: "FF6B00") : Color.clear, lineWidth: 2)).shadow(color: Color.black.opacity(0.02), radius: 10, y: 5) }
 }
-
-struct BarberSelectRow: View {
-    let barber: BarberItem; let isSelected: Bool
-    var body: some View {
-        HStack(spacing: 15) { Rectangle().fill(Color.gray.opacity(0.1)).frame(width: 70, height: 70).cornerRadius(15); VStack(alignment: .leading, spacing: 4) { Text(barber.name).font(.headline).foregroundColor(.black); Text(barber.specialty).font(.subheadline).foregroundColor(Color(hex: "FF6B00")).bold(); HStack { Image(systemName: "star.fill").foregroundColor(Color(hex: "FF6B00")).font(.caption); Text(barber.rating).font(.caption).bold().foregroundColor(.black); Text("• \(barber.years)").font(.caption).foregroundColor(.gray) } }; Spacer() }.padding().background(Color.white).cornerRadius(25).overlay(RoundedRectangle(cornerRadius: 25).stroke(isSelected ? Color(hex: "FF6B00") : Color.clear, lineWidth: 2)).shadow(color: Color.black.opacity(0.02), radius: 10, y: 5)
-    }
-}
-
-struct DateCard: View {
-    let date: DateItem; let isSelected: Bool
-    var body: some View {
-        VStack(spacing: 4) { Text(date.dayName).font(.caption).foregroundColor(isSelected ? .white : .gray); Text(date.dayNumber).font(.title2).bold().foregroundColor(isSelected ? .white : .black); Text(date.month).font(.caption).foregroundColor(isSelected ? .white : .gray) }.frame(maxWidth: .infinity).padding(.vertical, 20).background(isSelected ? Color(hex: "FF6B00") : Color.white).cornerRadius(20).shadow(color: Color.black.opacity(0.02), radius: 5, y: 2)
-    }
-}
-
-struct ActionCard: View {
-    var icon: String; var title: String; var subtitle: String
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) { Image(systemName: icon).font(.title2).foregroundColor(.white).padding(12).background(Color(hex: "FF6B00")).cornerRadius(12); VStack(alignment: .leading, spacing: 2) { Text(title).font(.headline).foregroundColor(.black); Text(subtitle).font(.caption2).foregroundColor(.gray) } }.frame(maxWidth: .infinity, alignment: .leading).padding(20).background(Color.white).cornerRadius(25).shadow(color: Color.black.opacity(0.03), radius: 10, y: 5)
-    }
-}
-
-struct BarberCard: View {
-    var name: String; var specialty: String; var rating: String
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) { Rectangle().fill(Color.gray.opacity(0.2)).frame(width: 180, height: 180).cornerRadius(25); VStack(alignment: .leading, spacing: 4) { Text(name).font(.headline).foregroundColor(.black); Text(specialty).font(.caption).bold().foregroundColor(Color(hex: "FF6B00")) }.padding(15) }.background(Color.white).cornerRadius(25)
-    }
-}
-
-struct SocialButton: View {
-    var icon: String; var color: String
-    var body: some View { Image(systemName: icon).font(.title2).foregroundColor(Color(hex: color)).frame(width: 55, height: 55).background(Color.white).cornerRadius(18).shadow(color: Color.black.opacity(0.05), radius: 5, y: 2) }
-}
-
+struct BarberSelectRow: View { let barber: BarberItem; let isSelected: Bool; var body: some View { HStack(spacing: 15) { Rectangle().fill(Color.gray.opacity(0.1)).frame(width: 70, height: 70).cornerRadius(15); VStack(alignment: .leading, spacing: 4) { Text(barber.name).font(.headline).foregroundColor(.black); Text(barber.specialty).font(.subheadline).foregroundColor(Color(hex: "FF6B00")).bold(); HStack { Image(systemName: "star.fill").foregroundColor(Color(hex: "FF6B00")).font(.caption); Text(barber.rating).font(.caption).bold().foregroundColor(.black); Text("• \(barber.years)").font(.caption).foregroundColor(.gray) } }; Spacer() }.padding().background(Color.white).cornerRadius(25).overlay(RoundedRectangle(cornerRadius: 25).stroke(isSelected ? Color(hex: "FF6B00") : Color.clear, lineWidth: 2)).shadow(color: Color.black.opacity(0.02), radius: 10, y: 5) } }
+struct DateCard: View { let date: DateItem; let isSelected: Bool; var body: some View { VStack(spacing: 4) { Text(date.dayName).font(.caption).foregroundColor(isSelected ? .white : .gray); Text(date.dayNumber).font(.title2).bold().foregroundColor(isSelected ? .white : .black); Text(date.month).font(.caption).foregroundColor(isSelected ? .white : .gray) }.frame(maxWidth: .infinity).padding(.vertical, 20).background(isSelected ? Color(hex: "FF6B00") : Color.white).cornerRadius(20).shadow(color: Color.black.opacity(0.02), radius: 5, y: 2) } }
+struct ActionCard: View { var icon: String; var title: String; var subtitle: String; var body: some View { VStack(alignment: .leading, spacing: 12) { Image(systemName: icon).font(.title2).foregroundColor(.white).padding(12).background(Color(hex: "FF6B00")).cornerRadius(12); VStack(alignment: .leading, spacing: 2) { Text(title).font(.headline).foregroundColor(.black); Text(subtitle).font(.caption2).foregroundColor(.gray) } }.frame(maxWidth: .infinity, alignment: .leading).padding(20).background(Color.white).cornerRadius(25).shadow(color: Color.black.opacity(0.03), radius: 10, y: 5) } }
+struct BarberCard: View { var name: String; var specialty: String; var rating: String; var body: some View { VStack(alignment: .leading, spacing: 0) { Rectangle().fill(Color.gray.opacity(0.2)).frame(width: 180, height: 180).cornerRadius(25); VStack(alignment: .leading, spacing: 4) { Text(name).font(.headline).foregroundColor(.black); Text(specialty).font(.caption).bold().foregroundColor(Color(hex: "FF6B00")) }.padding(15) }.background(Color.white).cornerRadius(25) } }
+struct SocialButton: View { var icon: String; var color: String; var body: some View { Image(systemName: icon).font(.title2).foregroundColor(Color(hex: color)).frame(width: 55, height: 55).background(Color.white).cornerRadius(18).shadow(color: Color.black.opacity(0.05), radius: 5, y: 2) } }
 struct SummaryRow: View { let title: String; let val: String; let icon: String; var body: some View { HStack { Image(systemName: icon).foregroundColor(.orange).frame(width: 30); VStack(alignment: .leading) { Text(title).font(.caption).foregroundColor(.gray); Text(val).bold() }; Spacer() } } }
-
 struct FigmaTextField: View { var icon: String; var placeholder: String; @Binding var text: String; var body: some View { HStack { Image(systemName: icon).foregroundColor(.secondary); TextField(placeholder, text: $text) }.padding(18).background(Color.white).cornerRadius(15).overlay(RoundedRectangle(cornerRadius: 15).stroke(Color.black.opacity(0.05), lineWidth: 1)) } }
-
 struct FigmaSecureField: View { var icon: String; var placeholder: String; @Binding var text: String; var body: some View { HStack { Image(systemName: icon).foregroundColor(.secondary); SecureField(placeholder, text: $text) }.padding(18).background(Color.white).cornerRadius(15).overlay(RoundedRectangle(cornerRadius: 15).stroke(Color.black.opacity(0.05), lineWidth: 1)) } }
-
 struct BarberDashboardView: View { @Binding var isAuthenticated: Bool; var body: some View { VStack { Text("Barber Panel"); Button("Logout") { isAuthenticated = false } } } }
 
 extension Color {
