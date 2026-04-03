@@ -33,36 +33,111 @@ struct ContentView: View {
     }
 }
 
-// MARK: - LOGIN
-struct AuthView: View {
-    @Binding var email: String; @Binding var password: String; @Binding var isAuthenticated: Bool; @Binding var isBarberMode: Bool; @Binding var isGuest: Bool
+// MARK: - REGISTER VIEW (RAZDVOJENO IME I PREZIME)
+struct RegisterView: View {
+    @Environment(\.presentationMode) var presentationMode
+    @State private var firstName = ""
+    @State private var lastName = ""
+    @State private var email = ""
+    @State private var phone = ""
+    @State private var password = ""
+    
     var body: some View {
         ZStack {
             Color(hex: "F8F9FA").ignoresSafeArea()
-            VStack(spacing: 0) {
-                Spacer().frame(height: 60)
-                VStack(spacing: 15) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 24).fill(Color(hex: "FF6B00")).frame(width: 110, height: 110).shadow(color: Color(hex: "FF6B00").opacity(0.3), radius: 15, y: 8)
-                        Image(systemName: "scissors").font(.system(size: 45, weight: .bold)).foregroundColor(.white)
-                    }
-                    Text("Barber Pro").font(.system(size: 34, weight: .black)).foregroundColor(Color(hex: "1A1A1A"))
-                }.padding(.bottom, 50)
-                VStack(spacing: 18) {
-                    FigmaTextField(icon: "envelope", placeholder: "Email address", text: $email)
-                    FigmaSecureField(icon: "lock", placeholder: "Password", text: $password)
-                }.padding(.horizontal, 25).padding(.bottom, 35)
-                VStack(spacing: 15) {
-                    Button(action: { isAuthenticated = true }) { Text("Sign In").fontWeight(.bold).foregroundColor(.white).frame(maxWidth: .infinity).padding(.vertical, 18).background(Color(hex: "FF6B00")).cornerRadius(18) }
-                    Button(action: { withAnimation { isGuest = true } }) { Text("Continue as Guest").fontWeight(.semibold).foregroundColor(Color(hex: "FF6B00")).frame(maxWidth: .infinity).padding(.vertical, 18).background(RoundedRectangle(cornerRadius: 18).stroke(Color(hex: "FF6B00"), lineWidth: 2)) }
-                }.padding(.horizontal, 25)
-                Spacer()
+            ScrollView {
+                VStack(spacing: 25) {
+                    VStack(spacing: 10) {
+                        Text("Create Account").font(.system(size: 32, weight: .black))
+                        Text("Join Barber Pro and start booking").foregroundColor(.gray)
+                    }.padding(.top, 40)
+                    
+                    VStack(spacing: 18) {
+                        // RAZDVOJENO IME I PREZIME
+                        HStack(spacing: 15) {
+                            FigmaTextField(icon: "person", placeholder: "First Name", text: $firstName)
+                            FigmaTextField(icon: "person.fill", placeholder: "Last Name", text: $lastName)
+                        }
+                        
+                        // EMAIL - Isključeno veliko slovo
+                        FigmaTextField(icon: "envelope", placeholder: "Email address", text: $email)
+                            .autocapitalization(.none)
+                            .keyboardType(.emailAddress)
+                        
+                        // TELEFON - Brojčana tipkovnica
+                        FigmaTextField(icon: "phone", placeholder: "Phone Number", text: $phone)
+                            .keyboardType(.phonePad)
+                        
+                        FigmaSecureField(icon: "lock", placeholder: "Password", text: $password)
+                    }.padding(.horizontal, 25)
+                    
+                    Button(action: {
+                        print("Registracija: \(firstName) \(lastName)")
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        Text("Sign Up").fontWeight(.bold).foregroundColor(.white).frame(maxWidth: .infinity).padding(.vertical, 18).background(Color(hex: "FF6B00")).cornerRadius(18)
+                    }.padding(.horizontal, 25)
+                    
+                    Button("Already have an account? Sign In") {
+                        presentationMode.wrappedValue.dismiss()
+                    }.foregroundColor(.gray).font(.footnote)
+                }
             }
+        }
+        .navigationBarHidden(true)
+    }
+}
+
+// MARK: - LOGIN
+struct AuthView: View {
+    @Binding var email: String; @Binding var password: String
+    @Binding var isAuthenticated: Bool; @Binding var isBarberMode: Bool; @Binding var isGuest: Bool
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color(hex: "F8F9FA").ignoresSafeArea()
+                VStack(spacing: 0) {
+                    Spacer().frame(height: 60)
+                    VStack(spacing: 15) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 24).fill(Color(hex: "FF6B00")).frame(width: 110, height: 110).shadow(color: Color(hex: "FF6B00").opacity(0.3), radius: 15, y: 8)
+                            Image(systemName: "scissors").font(.system(size: 45, weight: .bold)).foregroundColor(.white)
+                        }
+                        Text("Barber Pro").font(.system(size: 34, weight: .black)).foregroundColor(Color(hex: "1A1A1A"))
+                    }.padding(.bottom, 50)
+                    
+                    VStack(spacing: 18) {
+                        // EMAIL - Isključeno veliko slovo i ovdje
+                        FigmaTextField(icon: "envelope", placeholder: "Email address", text: $email)
+                            .autocapitalization(.none)
+                            .keyboardType(.emailAddress)
+                        
+                        FigmaSecureField(icon: "lock", placeholder: "Password", text: $password)
+                    }.padding(.horizontal, 25).padding(.bottom, 35)
+                    
+                    VStack(spacing: 15) {
+                        Button(action: { isAuthenticated = true }) {
+                            Text("Sign In").fontWeight(.bold).foregroundColor(.white).frame(maxWidth: .infinity).padding(.vertical, 18).background(Color(hex: "FF6B00")).cornerRadius(18)
+                        }
+                        
+                        NavigationLink(destination: RegisterView()) {
+                            Text("Create Account").fontWeight(.semibold).foregroundColor(Color(hex: "FF6B00")).frame(maxWidth: .infinity).padding(.vertical, 18).background(RoundedRectangle(cornerRadius: 18).stroke(Color(hex: "FF6B00"), lineWidth: 2))
+                        }
+                        
+                        Button(action: { withAnimation { isGuest = true } }) {
+                            Text("Continue as Guest").foregroundColor(.gray).font(.subheadline)
+                        }.padding(.top, 10)
+                    }.padding(.horizontal, 25)
+                    Spacer()
+                }
+            }
+            .navigationBarHidden(true)
         }
     }
 }
 
-// MARK: - HOME SCREEN (S POPRAVLJENIM SKROLANJEM)
+// MARK: - HOME SCREEN (Jordan)
 struct ClientDashboardView: View {
     @Binding var isAuthenticated: Bool; @Binding var isGuest: Bool
     @State private var navigationId = UUID()
@@ -71,11 +146,8 @@ struct ClientDashboardView: View {
         NavigationView {
             ZStack {
                 Color(hex: "F8F9FA").ignoresSafeArea()
-                
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        
-                        // WELCOME HEADER - Sada je unutar ScrollView-a
                         VStack(alignment: .leading, spacing: 4) {
                             Text(isGuest ? "Welcome, Guest" : "Welcome back,").font(.system(size: 18)).foregroundColor(.gray)
                             Text(isGuest ? "Stranger" : "Jordan").font(.system(size: 32, weight: .black))
@@ -131,7 +203,7 @@ struct ClientDashboardView: View {
     }
 }
 
-// MARK: - BOOKING KORACI (Netaknuti stilovi)
+// MARK: - BOOKING KORACI
 struct ServicesView: View {
     @Environment(\.presentationMode) var presentationMode; @State private var selectedService: ServiceItem?
     let services = [ServiceItem(name: "Haircut", price: "$40", duration: "30 min", icon: "scissors"), ServiceItem(name: "Beard Trim", price: "$25", duration: "20 min", icon: "wind"), ServiceItem(name: "Full Service", price: "$65", duration: "60 min", icon: "sparkles"), ServiceItem(name: "Hot Towel Shave", price: "$35", duration: "30 min", icon: "bolt.fill")]
@@ -151,7 +223,7 @@ struct ServicesView: View {
 
 struct BarberSelectionView: View {
     @Environment(\.presentationMode) var presentationMode; let selectedService: ServiceItem; @State private var selectedBarber: BarberItem?
-    let barbers = [BarberItem(name: "Alex Martinez", specialty: "Fade Specialist", rating: "4.9", years: "12 years", imageName: "person.fill"), BarberItem(name: "Marcus Chen", specialty: "Classic Cuts", rating: "4.8", years: "8 years", imageName: "person.fill"), BarberItem(name: "David Torres", specialty: "Beard Expert", rating: "5.0", years: "10 years", imageName: "person.fill")]
+    let barbers = [BarberItem(name: "Luka Perić", specialty: "Classic Cuts", rating: "4.9", years: "12 years", imageName: "person.fill"), BarberItem(name: "Jani Brodarić", specialty: "Fade Specialist", rating: "4.8", years: "8 years", imageName: "person.fill")]
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Button(action: { presentationMode.wrappedValue.dismiss() }) { HStack(spacing: 5) { Image(systemName: "chevron.left"); Text("Back") }.foregroundColor(Color(hex: "FF6B00")).font(.system(size: 18, weight: .medium)) }.padding(.horizontal, 25).padding(.top, 10)
@@ -212,7 +284,7 @@ struct ConfirmationView: View {
     }
 }
 
-// MARK: - POMOĆNE KOMPONENTE (Netaknuto)
+// MARK: - POMOĆNE KOMPONENTE
 struct ServiceItemRow: View {
     let service: ServiceItem; let isSelected: Bool
     var body: some View { HStack(spacing: 20) { ZStack { RoundedRectangle(cornerRadius: 15).fill(Color(hex: "FF6B00").opacity(0.08)).frame(width: 55, height: 55); Image(systemName: service.icon).font(.system(size: 20)).foregroundColor(Color(hex: "FF6B00")) }; VStack(alignment: .leading, spacing: 4) { Text(service.name).font(.system(size: 18, weight: .bold)).foregroundColor(.black); HStack(spacing: 8) { Text(service.price).bold().foregroundColor(Color(hex: "FF6B00")); Text(service.duration).foregroundColor(.gray) } }; Spacer() }.padding(18).background(Color.white).cornerRadius(25).overlay(RoundedRectangle(cornerRadius: 25).stroke(isSelected ? Color(hex: "FF6B00") : Color.clear, lineWidth: 2)).shadow(color: Color.black.opacity(0.02), radius: 10, y: 5) }
@@ -223,7 +295,26 @@ struct ActionCard: View { var icon: String; var title: String; var subtitle: Str
 struct BarberCard: View { var name: String; var specialty: String; var rating: String; var body: some View { VStack(alignment: .leading, spacing: 0) { Rectangle().fill(Color.gray.opacity(0.2)).frame(width: 180, height: 180).cornerRadius(25); VStack(alignment: .leading, spacing: 4) { Text(name).font(.headline).foregroundColor(.black); Text(specialty).font(.caption).bold().foregroundColor(Color(hex: "FF6B00")) }.padding(15) }.background(Color.white).cornerRadius(25) } }
 struct SocialButton: View { var icon: String; var color: String; var body: some View { Image(systemName: icon).font(.title2).foregroundColor(Color(hex: color)).frame(width: 55, height: 55).background(Color.white).cornerRadius(18).shadow(color: Color.black.opacity(0.05), radius: 5, y: 2) } }
 struct SummaryRow: View { let title: String; let val: String; let icon: String; var body: some View { HStack { Image(systemName: icon).foregroundColor(.orange).frame(width: 30); VStack(alignment: .leading) { Text(title).font(.caption).foregroundColor(.gray); Text(val).bold() }; Spacer() } } }
-struct FigmaTextField: View { var icon: String; var placeholder: String; @Binding var text: String; var body: some View { HStack { Image(systemName: icon).foregroundColor(.secondary); TextField(placeholder, text: $text) }.padding(18).background(Color.white).cornerRadius(15).overlay(RoundedRectangle(cornerRadius: 15).stroke(Color.black.opacity(0.05), lineWidth: 1)) } }
+
+// MARK: - FIGMA TEXT FIELD (AŽURIRANO)
+struct FigmaTextField: View {
+    var icon: String
+    var placeholder: String
+    @Binding var text: String
+    
+    var body: some View {
+        HStack {
+            Image(systemName: icon).foregroundColor(.secondary)
+            TextField(placeholder, text: $text)
+                .disableAutocorrection(true)
+        }
+        .padding(18)
+        .background(Color.white)
+        .cornerRadius(15)
+        .overlay(RoundedRectangle(cornerRadius: 15).stroke(Color.black.opacity(0.05), lineWidth: 1))
+    }
+}
+
 struct FigmaSecureField: View { var icon: String; var placeholder: String; @Binding var text: String; var body: some View { HStack { Image(systemName: icon).foregroundColor(.secondary); SecureField(placeholder, text: $text) }.padding(18).background(Color.white).cornerRadius(15).overlay(RoundedRectangle(cornerRadius: 15).stroke(Color.black.opacity(0.05), lineWidth: 1)) } }
 struct BarberDashboardView: View { @Binding var isAuthenticated: Bool; var body: some View { VStack { Text("Barber Panel"); Button("Logout") { isAuthenticated = false } } } }
 
