@@ -18,21 +18,39 @@ struct DateItem: Identifiable {
 
 // MARK: - MAIN CONTENT VIEW
 struct ContentView: View {
-    @State private var email = ""; @State private var password = ""
-    @State private var isAuthenticated = false; @State private var isBarberMode = false; @State private var isGuest = false
+    // 1. Ovdje definiramo "poštara" koji priča sa C# serverom
+    @StateObject var authService = AuthService()
+    
+    // 2. Lokalne varijable za unos teksta i modove rada
+    @State private var email = ""
+    @State private var password = ""
+    @State private var isBarberMode = false
+    @State private var isGuest = false
     
     var body: some View {
         Group {
-            if isAuthenticated || isGuest {
-                if isBarberMode { BarberDashboardView(isAuthenticated: $isAuthenticated) }
-                else { ClientDashboardView(isAuthenticated: $isAuthenticated, isGuest: $isGuest) }
+            // 3. LOGIKA: Ako je korisnik ulogiran ILI je ušao kao gost
+            if authService.isAuthenticated || isGuest {
+                if isBarberMode {
+                    BarberDashboardView(isAuthenticated: $authService.isAuthenticated)
+                } else {
+                    ClientDashboardView(isAuthenticated: $authService.isAuthenticated, isGuest: $isGuest)
+                }
             } else {
-                AuthView(email: $email, password: $password, isAuthenticated: $isAuthenticated, isBarberMode: $isBarberMode, isGuest: $isGuest)
+                // 4. Ovdje dodaješ poziv za AuthView
+                // Šaljemo mu sve što on očekuje (email, lozinku, modove)
+                AuthView(
+                    email: $email,
+                    password: $password,
+                    isBarberMode: $isBarberMode,
+                    isGuest: $isGuest
+                )
+                // 5. OVO JE KLJUČNO: Dajemo mu pristup authService-u
+                .environmentObject(authService)
             }
         }
     }
 }
-
 // MARK: - REGISTER VIEW (RAZDVOJENO IME I PREZIME)
 struct RegisterView: View {
     @Environment(\.presentationMode) var presentationMode
@@ -90,8 +108,15 @@ struct RegisterView: View {
 
 // MARK: - LOGIN
 struct AuthView: View {
-    @Binding var email: String; @Binding var password: String
-    @Binding var isAuthenticated: Bool; @Binding var isBarberMode: Bool; @Binding var isGuest: Bool
+    // 1. Dodajemo pristup AuthService-u
+    @EnvironmentObject var authService: AuthService
+    
+    @Binding var email: String
+    @Binding var password: String
+    
+    // Više ne trebamo @Binding za isAuthenticated jer ga slušamo preko authService-a
+    @Binding var isBarberMode: Bool
+    @Binding var isGuest: Bool
     
     var body: some View {
         NavigationView {
@@ -99,36 +124,84 @@ struct AuthView: View {
                 Color(hex: "F8F9FA").ignoresSafeArea()
                 VStack(spacing: 0) {
                     Spacer().frame(height: 60)
+                    
+                    // Logo sekcija
                     VStack(spacing: 15) {
                         ZStack {
-                            RoundedRectangle(cornerRadius: 24).fill(Color(hex: "FF6B00")).frame(width: 110, height: 110).shadow(color: Color(hex: "FF6B00").opacity(0.3), radius: 15, y: 8)
-                            Image(systemName: "scissors").font(.system(size: 45, weight: .bold)).foregroundColor(.white)
+                            RoundedRectangle(cornerRadius: 24)
+                                .fill(Color(hex: "FF6B00"))
+                                .frame(width: 110, height: 110)
+                                .shadow(color: Color(hex: "FF6B00").opacity(0.3), radius: 15, y: 8)
+                            Image(systemName: "scissors")
+                                .font(.system(size: 45, weight: .bold))
+                                .foregroundColor(.white)
                         }
-                        Text("Barber Pro").font(.system(size: 34, weight: .black)).foregroundColor(Color(hex: "1A1A1A"))
+                        Text("Barber Pro")
+                            .font(.system(size: 34, weight: .black))
+                            .foregroundColor(Color(hex: "1A1A1A"))
                     }.padding(.bottom, 50)
                     
+                    // Input polja
                     VStack(spacing: 18) {
-                        // EMAIL - Isključeno veliko slovo i ovdje
                         FigmaTextField(icon: "envelope", placeholder: "Email address", text: $email)
                             .autocapitalization(.none)
+                            .disableAutocorrection(true) // Dodano da ti iPhone ne kvari mail
                             .keyboardType(.emailAddress)
                         
                         FigmaSecureField(icon: "lock", placeholder: "Password", text: $password)
-                    }.padding(.horizontal, 25).padding(.bottom, 35)
+                    }
+                    .padding(.horizontal, 25)
+                    .padding(.bottom, 10)
                     
+                    // Prikaz greške ako login ne uspije
+                    if let errorMessage = authService.errorMessage {
+                        Text(errorMessage)
+                            .foregroundColor(.red)
+                            .font(.caption)
+                            .padding(.bottom, 20)
+                    } else {
+                        Spacer().frame(height: 25)
+                    }
+                    
+                    // Tipke
                     VStack(spacing: 15) {
-                        Button(action: { isAuthenticated = true }) {
-                            Text("Sign In").fontWeight(.bold).foregroundColor(.white).frame(maxWidth: .infinity).padding(.vertical, 18).background(Color(hex: "FF6B00")).cornerRadius(18)
+                        // 2. ISPRAVLJEN GUMB - Sada zove login metodu
+                        Button(action: {
+                            authService.login(email: email, password: password)
+                        }) {
+                            if authService.isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 18)
+                                    .background(Color(hex: "FF6B00"))
+                                    .cornerRadius(18)
+                            } else {
+                                Text("Sign In")
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 18)
+                                    .background(Color(hex: "FF6B00"))
+                                    .cornerRadius(18)
+                            }
                         }
+                        .disabled(authService.isLoading) // Onemogući gumb dok se učitava
                         
                         NavigationLink(destination: RegisterView()) {
-                            Text("Create Account").fontWeight(.semibold).foregroundColor(Color(hex: "FF6B00")).frame(maxWidth: .infinity).padding(.vertical, 18).background(RoundedRectangle(cornerRadius: 18).stroke(Color(hex: "FF6B00"), lineWidth: 2))
+                            Text("Create Account")
+                                .fontWeight(.semibold)
+                                .foregroundColor(Color(hex: "FF6B00"))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 18)
+                                .background(RoundedRectangle(cornerRadius: 18).stroke(Color(hex: "FF6B00"), lineWidth: 2))
                         }
                         
                         Button(action: { withAnimation { isGuest = true } }) {
                             Text("Continue as Guest").foregroundColor(.gray).font(.subheadline)
                         }.padding(.top, 10)
                     }.padding(.horizontal, 25)
+                    
                     Spacer()
                 }
             }
@@ -136,7 +209,6 @@ struct AuthView: View {
         }
     }
 }
-
 // MARK: - HOME SCREEN (Jordan)
 struct ClientDashboardView: View {
     @Binding var isAuthenticated: Bool; @Binding var isGuest: Bool
