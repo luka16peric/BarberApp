@@ -51,9 +51,11 @@ struct ContentView: View {
         }
     }
 }
-// MARK: - REGISTER VIEW (RAZDVOJENO IME I PREZIME)
+// MARK: - REGISTER VIEW (Povezan s Backendom)
 struct RegisterView: View {
     @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject var authService: AuthService // Poveznica sa serverom
+    
     @State private var firstName = ""
     @State private var lastName = ""
     @State private var email = ""
@@ -71,30 +73,49 @@ struct RegisterView: View {
                     }.padding(.top, 40)
                     
                     VStack(spacing: 18) {
-                        // RAZDVOJENO IME I PREZIME
                         HStack(spacing: 15) {
                             FigmaTextField(icon: "person", placeholder: "First Name", text: $firstName)
                             FigmaTextField(icon: "person.fill", placeholder: "Last Name", text: $lastName)
                         }
                         
-                        // EMAIL - Isključeno veliko slovo
                         FigmaTextField(icon: "envelope", placeholder: "Email address", text: $email)
                             .autocapitalization(.none)
                             .keyboardType(.emailAddress)
                         
-                        // TELEFON - Brojčana tipkovnica
                         FigmaTextField(icon: "phone", placeholder: "Phone Number", text: $phone)
                             .keyboardType(.phonePad)
                         
                         FigmaSecureField(icon: "lock", placeholder: "Password", text: $password)
                     }.padding(.horizontal, 25)
                     
+                    // --- GUMB KOJI STVARNO RADI REGISTRACIJU ---
                     Button(action: {
-                        print("Registracija: \(firstName) \(lastName)")
-                        presentationMode.wrappedValue.dismiss()
+                        // Šaljemo podatke tvom C# API-ju
+                        authService.register(
+                            firstName: firstName,
+                            lastName: lastName,
+                            email: email,
+                            password: password
+                        )
                     }) {
-                        Text("Sign Up").fontWeight(.bold).foregroundColor(.white).frame(maxWidth: .infinity).padding(.vertical, 18).background(Color(hex: "FF6B00")).cornerRadius(18)
-                    }.padding(.horizontal, 25)
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 18)
+                                .fill(Color(hex: "FF6B00"))
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 55)
+                            
+                            if authService.isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            } else {
+                                Text("Sign Up")
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 25)
+                    .disabled(authService.isLoading) // Onemogući klik dok traje slanje
                     
                     Button("Already have an account? Sign In") {
                         presentationMode.wrappedValue.dismiss()
@@ -105,7 +126,6 @@ struct RegisterView: View {
         .navigationBarHidden(true)
     }
 }
-
 // MARK: - LOGIN
 struct AuthView: View {
     // 1. Dodajemo pristup AuthService-u
