@@ -227,10 +227,11 @@ struct AuthView: View {
 }
 // MARK: - HOME SCREEN
 struct ClientDashboardView: View {
-    // 1. Dodajemo pristup servisu da dobijemo ime
     @EnvironmentObject var authService: AuthService
-    
     @Binding var isAuthenticated: Bool; @Binding var isGuest: Bool
+    
+    // Pamti koji je brijač odabran za prikaz detalja
+    @State private var selectedBarber: String? = nil
     @State private var navigationId = UUID()
     
     var body: some View {
@@ -239,16 +240,20 @@ struct ClientDashboardView: View {
                 Color(hex: "F8F9FA").ignoresSafeArea()
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
+                        // Welcome Header
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(isGuest ? "Welcome," : "Welcome back,").font(.system(size: 18)).foregroundColor(.gray)
+                            Text(isGuest ? "Welcome," : "Welcome back,")
+                                .font(.system(size: 18))
+                                .foregroundColor(.gray)
                             
-                            // 2. OVDJE JE PROMJENA: authService.currentUserFirstName umjesto "Jordan"
-                            Text(isGuest ? "Guest" : authService.currentUserFirstName).font(.system(size: 32, weight: .black))
+                            Text(isGuest ? "Guest" : authService.currentUserFirstName)
+                                .font(.system(size: 32, weight: .black))
                         }
                         .padding(.horizontal, 25)
                         .padding(.top, 30)
                         
                         VStack(alignment: .leading, spacing: 30) {
+                            // Booking Action Cards
                             HStack(spacing: 20) {
                                 NavigationLink(destination: ServicesView()) { ActionCard(icon: "calendar", title: "Book Now", subtitle: "Schedule appointment") }
                                 NavigationLink(destination: ServicesView()) { ActionCard(icon: "scissors", title: "Services", subtitle: "View all") }
@@ -257,16 +262,44 @@ struct ClientDashboardView: View {
                             .padding(.horizontal, 25)
                             .padding(.top, 20)
                             
+                            // MARK: - OUR BARBERS SECTION
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("Our Barbers").font(.headline).padding(.horizontal, 25)
+                                
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     HStack(spacing: 20) {
-                                        BarberCard(name: "Luka Perić", specialty: "Classic Cuts", rating: "4.8")
-                                        BarberCard(name: "Jani Brodarić", specialty: "Beard Expert", rating: "5.0")
-                                    }.padding(.horizontal, 25)
+                                        
+                                        // LOGIKA ZA LUKU
+                                        if selectedBarber == "Luka" {
+                                            BarberDetailCard(name: "Luka Perić", image: "luka_slika", bio: "Fades & Classic cuts.", hours: "09:00 - 20:00") {
+                                                withAnimation(.spring()) { selectedBarber = nil }
+                                            }
+                                        } else {
+                                            BarberCard(name: "Luka Perić", specialty: "Classic Cuts", rating: "4.8")
+                                                .onTapGesture {
+                                                    withAnimation(.spring()) { selectedBarber = "Luka" }
+                                                }
+                                        }
+
+                                        // LOGIKA ZA JANIJA
+                                        if selectedBarber == "Jani" {
+                                            BarberDetailCard(name: "Jani Brodarić", image: "jani_slika", bio: "Beard expert & styling.", hours: "10:00 - 19:00") {
+                                                withAnimation(.spring()) { selectedBarber = nil }
+                                            }
+                                        } else {
+                                            BarberCard(name: "Jani Brodarić", specialty: "Beard Expert", rating: "5.0")
+                                                .onTapGesture {
+                                                    withAnimation(.spring()) { selectedBarber = "Jani" }
+                                                }
+                                        }
+                                        
+                                    }
+                                    .padding(.horizontal, 25)
+                                    .padding(.vertical, 5)
                                 }
                             }
                             
+                            // Find Us Section
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("Find Us").font(.headline).padding(.horizontal, 25)
                                 HStack(spacing: 15) {
@@ -279,16 +312,17 @@ struct ClientDashboardView: View {
                                 }.padding(20).background(Color.white).cornerRadius(25).shadow(color: Color.black.opacity(0.03), radius: 10, y: 5).padding(.horizontal, 25)
                             }
                             
+                            // Social Buttons
                             HStack(spacing: 25) {
                                 SocialButton(icon: "camera.fill", color: "E1306C")
                                 SocialButton(icon: "music.note", color: "000000")
                                 SocialButton(icon: "f.square.fill", color: "1877F2")
                             }.frame(maxWidth: .infinity).padding(.top, 10)
 
-                            // 3. OVDJE DODAJEMO authService.logout() da resetira ime na izlazu
+                            // Logout Button
                             Button("Exit App") {
                                 authService.logout()
-                                isAuthenticated = false;
+                                isAuthenticated = false
                                 isGuest = false
                             }.font(.footnote).foregroundColor(.gray).frame(maxWidth: .infinity).padding(.bottom, 30)
                         }
@@ -298,6 +332,55 @@ struct ClientDashboardView: View {
             .navigationBarHidden(true)
         }
         .id(navigationId)
+    }
+}
+
+// MARK: - POMOĆNA KOMPONENTA ZA PROŠIRENU KARTICU (Figma Style)
+struct BarberDetailCard: View {
+    let name: String
+    let image: String
+    let bio: String
+    let hours: String
+    var onClose: () -> Void
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(name).font(.system(size: 18, weight: .bold))
+                    Text("Master Barber").font(.caption).foregroundColor(.orange)
+                }
+                Spacer()
+                Button(action: onClose) {
+                    Image(systemName: "xmark.circle.fill").foregroundColor(.gray).font(.title3)
+                }
+            }
+            
+            Text("About Me").font(.system(size: 12, weight: .bold))
+            Text(bio).font(.system(size: 11)).foregroundColor(.gray)
+            
+            Divider()
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Working Hours:").font(.system(size: 10, weight: .bold))
+                Text(hours).font(.system(size: 10)).foregroundColor(.gray)
+            }
+            
+            Button(action: {}) {
+                Text("Book Now")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .background(Color.orange)
+                    .cornerRadius(10)
+            }
+        }
+        .padding(15)
+        .frame(width: 240)
+        .background(Color.white)
+        .cornerRadius(20)
+        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
     }
 }
 // MARK: - BOOKING KORACI
