@@ -6,62 +6,73 @@ class AuthService: ObservableObject {
     @Published var isAuthenticated: Bool = false
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
+    @Published var currentUserFirstName: String = "User"
     
     // Provjeri je li ovo tvoj port u Visual Studiju (Swagger URL)
     private let baseURL = "http://localhost:5078/api/Auth"
 
     // MARK: - LOGIN
-    func login(email: String, password: String) {
-        guard let url = URL(string: "\(baseURL)/login") else { return }
-        
-        // Resetiramo stanje prije slanja
-        DispatchQueue.main.async {
-            self.isLoading = true
-            self.errorMessage = nil
-        }
-        
-        let body: [String: Any] = [
-            "email": email,
-            "password": password
-        ]
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        func login(email: String, password: String) {
+            guard let url = URL(string: "\(baseURL)/login") else { return }
+            
+            // Resetiramo stanje prije slanja
             DispatchQueue.main.async {
-                self.isLoading = false
-                
-                // 1. Provjera mrežne greške
-                if let error = error {
-                    self.errorMessage = "Mrežna greška: \(error.localizedDescription)"
-                    print("❌ Error: \(error)")
-                    return
-                }
-                
-                // 2. Provjera HTTP odgovora
-                if let httpResponse = response as? HTTPURLResponse {
-                    print("📩 Status Code: \(httpResponse.statusCode)")
+                self.isLoading = true
+                self.errorMessage = nil
+            }
+            
+            let body: [String: Any] = [
+                "email": email,
+                "password": password
+            ]
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                DispatchQueue.main.async {
+                    self.isLoading = false
                     
-                    if httpResponse.statusCode == 200 {
-                        print("✅ Login uspješan!")
-                        withAnimation {
-                            self.isAuthenticated = true
+                    // 1. Provjera mrežne greške
+                    if let error = error {
+                        self.errorMessage = "Mrežna greška: \(error.localizedDescription)"
+                        print("❌ Error: \(error)")
+                        return
+                    }
+                    
+                    // 2. Provjera HTTP odgovora
+                    if let httpResponse = response as? HTTPURLResponse {
+                        print("📩 Status Code: \(httpResponse.statusCode)")
+                        
+                        if httpResponse.statusCode == 200 {
+                            print("✅ Login uspješan!")
+                            
+                            // --- NOVO: ČITANJE IMENA IZ BAZE ---
+                            if let data = data,
+                               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                               let firstName = json["firstName"] as? String {
+                                self.currentUserFirstName = firstName
+                                print("👤 Dobiveno ime iz baze: \(firstName)")
+                            }
+                            // ----------------------------------
+                            
+                            withAnimation {
+                                self.isAuthenticated = true
+                            }
+                        } else if httpResponse.statusCode == 401 {
+                            self.errorMessage = "Pogrešan email ili lozinka."
+                            self.isAuthenticated = false
+                        } else {
+                            self.errorMessage = "Greška servera: \(httpResponse.statusCode)"
+                            self.isAuthenticated = false
                         }
-                    } else if httpResponse.statusCode == 401 {
-                        self.errorMessage = "Pogrešan email ili lozinka."
-                        self.isAuthenticated = false
-                    } else {
-                        self.errorMessage = "Greška servera: \(httpResponse.statusCode)"
-                        self.isAuthenticated = false
                     }
                 }
-            }
-        }.resume()
-    }
-
+            }.resume()
+        }
+    
     // MARK: - REGISTER
     func register(firstName: String, lastName: String, email: String, password: String) {
         guard let url = URL(string: "\(baseURL)/register") else { return }

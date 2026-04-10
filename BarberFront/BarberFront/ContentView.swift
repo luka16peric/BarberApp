@@ -18,10 +18,8 @@ struct DateItem: Identifiable {
 
 // MARK: - MAIN CONTENT VIEW
 struct ContentView: View {
-    // 1. Ovdje definiramo "poštara" koji priča sa C# serverom
     @StateObject var authService = AuthService()
     
-    // 2. Lokalne varijable za unos teksta i modove rada
     @State private var email = ""
     @State private var password = ""
     @State private var isBarberMode = false
@@ -29,24 +27,22 @@ struct ContentView: View {
     
     var body: some View {
         Group {
-            // 3. LOGIKA: Ako je korisnik ulogiran ILI je ušao kao gost
             if authService.isAuthenticated || isGuest {
                 if isBarberMode {
                     BarberDashboardView(isAuthenticated: $authService.isAuthenticated)
+                        .environmentObject(authService) // 👈 DODAJ OVO!
                 } else {
                     ClientDashboardView(isAuthenticated: $authService.isAuthenticated, isGuest: $isGuest)
+                        .environmentObject(authService) // 👈 I OVO JE KLJUČNO!
                 }
             } else {
-                // 4. Ovdje dodaješ poziv za AuthView
-                // Šaljemo mu sve što on očekuje (email, lozinku, modove)
                 AuthView(
                     email: $email,
                     password: $password,
                     isBarberMode: $isBarberMode,
                     isGuest: $isGuest
                 )
-                // 5. OVO JE KLJUČNO: Dajemo mu pristup authService-u
-                .environmentObject(authService)
+                .environmentObject(authService) // Ovo već imaš, to je dobro
             }
         }
     }
@@ -229,8 +225,11 @@ struct AuthView: View {
         }
     }
 }
-// MARK: - HOME SCREEN (Jordan)
+// MARK: - HOME SCREEN
 struct ClientDashboardView: View {
+    // 1. Dodajemo pristup servisu da dobijemo ime
+    @EnvironmentObject var authService: AuthService
+    
     @Binding var isAuthenticated: Bool; @Binding var isGuest: Bool
     @State private var navigationId = UUID()
     
@@ -242,7 +241,9 @@ struct ClientDashboardView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(isGuest ? "Welcome, Guest" : "Welcome back,").font(.system(size: 18)).foregroundColor(.gray)
-                            Text(isGuest ? "Stranger" : "Jordan").font(.system(size: 32, weight: .black))
+                            
+                            // 2. OVDJE JE PROMJENA: authService.currentUserFirstName umjesto "Jordan"
+                            Text(isGuest ? "Stranger" : authService.currentUserFirstName).font(.system(size: 32, weight: .black))
                         }
                         .padding(.horizontal, 25)
                         .padding(.top, 30)
@@ -284,7 +285,12 @@ struct ClientDashboardView: View {
                                 SocialButton(icon: "f.square.fill", color: "1877F2")
                             }.frame(maxWidth: .infinity).padding(.top, 10)
 
-                            Button("Exit App") { isAuthenticated = false; isGuest = false }.font(.footnote).foregroundColor(.gray).frame(maxWidth: .infinity).padding(.bottom, 30)
+                            // 3. OVDJE DODAJEMO authService.logout() da resetira ime na izlazu
+                            Button("Exit App") {
+                                authService.logout()
+                                isAuthenticated = false;
+                                isGuest = false
+                            }.font(.footnote).foregroundColor(.gray).frame(maxWidth: .infinity).padding(.bottom, 30)
                         }
                     }
                 }
@@ -294,7 +300,6 @@ struct ClientDashboardView: View {
         .id(navigationId)
     }
 }
-
 // MARK: - BOOKING KORACI
 struct ServicesView: View {
     @Environment(\.presentationMode) var presentationMode; @State private var selectedService: ServiceItem?
