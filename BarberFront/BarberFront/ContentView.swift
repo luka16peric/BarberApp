@@ -240,10 +240,10 @@ struct ClientDashboardView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(isGuest ? "Welcome, Guest" : "Welcome back,").font(.system(size: 18)).foregroundColor(.gray)
+                            Text(isGuest ? "Welcome," : "Welcome back,").font(.system(size: 18)).foregroundColor(.gray)
                             
                             // 2. OVDJE JE PROMJENA: authService.currentUserFirstName umjesto "Jordan"
-                            Text(isGuest ? "Stranger" : authService.currentUserFirstName).font(.system(size: 32, weight: .black))
+                            Text(isGuest ? "Guest" : authService.currentUserFirstName).font(.system(size: 32, weight: .black))
                         }
                         .padding(.horizontal, 25)
                         .padding(.top, 30)
@@ -272,8 +272,8 @@ struct ClientDashboardView: View {
                                 HStack(spacing: 15) {
                                     Image(systemName: "map.fill").font(.title2).foregroundColor(.white).padding(12).background(Color(hex: "FF6B00")).cornerRadius(15)
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text("Barber Pro Studio").font(.headline)
-                                        Text("Ulica Hrvatske Mornarice 10, Split").font(.subheadline).foregroundColor(.gray)
+                                        Text("Tehnička škola Ruđera Boškovića").font(.headline)
+                                        Text("Getaldićeva ul. 4, 10000, Zagreb").font(.subheadline).foregroundColor(.gray)
                                     }
                                     Spacer()
                                 }.padding(20).background(Color.white).cornerRadius(25).shadow(color: Color.black.opacity(0.03), radius: 10, y: 5).padding(.horizontal, 25)
